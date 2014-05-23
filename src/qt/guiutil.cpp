@@ -750,4 +750,24 @@ QString boostPathToQString(const boost::filesystem::path &path)
 }
 #endif
 
+QString formatDurationStr(int secs)
+{
+    QString str;
+    int days = secs / 86400;
+    int hours = (secs % 86400) / 3600;
+    int mins = (secs % 3600) / 60;
+    int seconds = secs % 60;
+
+    if (days)
+        str.append(QString(QObject::tr("%1 d ")).arg(days));
+    if (hours)
+        str.append(QString(QObject::tr("%1 h ")).arg(hours));
+    if (mins)
+        str.append(QString(QObject::tr("%1 m ")).arg(mins));
+    if (seconds || (!days && !hours && !mins))
+        str.append(QString(QObject::tr("%1 s ")).arg(seconds));
+
+    return str.trimmed();
+}
+
 } // namespace GUIUtil
