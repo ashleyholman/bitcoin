@@ -6,8 +6,9 @@
 #include "ui_rpcconsole.h"
 
 #include "clientmodel.h"
-#include "peertablemodel.h"
 #include "guiutil.h"
+#include "peertablemodel.h"
+
 #include "main.h"
 #include "util.h"
 

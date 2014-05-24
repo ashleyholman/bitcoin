@@ -9,8 +9,8 @@
 
 class AddressTableModel;
 class OptionsModel;
-class TransactionTableModel;
 class PeerTableModel;
+class TransactionTableModel;
 
 class CWallet;
 

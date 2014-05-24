@@ -4,8 +4,8 @@
 
 #include "clientmodel.h"
 
-#include "peertablemodel.h"
 #include "guiconstants.h"
+#include "peertablemodel.h"
 
 #include "alert.h"
 #include "chainparams.h"
