@@ -27,8 +27,8 @@ bool NodeLessThan::operator()(const CNodeStats &left, const CNodeStats &right) c
         return pLeft->addrName.compare(pRight->addrName) < 0;
     case PeerTableModel::Subversion:
         return pLeft->cleanSubVer.compare(pRight->cleanSubVer) < 0;
-    case PeerTableModel::Height:
-        return pLeft->nStartingHeight < pRight->nStartingHeight;
+    case PeerTableModel::Ping:
+        return pLeft->dPingTime < pRight->dPingTime;
     }
 
     return false;
@@ -102,7 +102,7 @@ public:
 PeerTableModel::PeerTableModel(ClientModel *parent) :
     QAbstractTableModel(parent),clientModel(parent),timer(0)
 {
-    columns << tr("Address") << tr("Subversion") << tr("Start Height");
+    columns << tr("Address") << tr("Subversion") << tr("Ping (secs)");
     priv = new PeerTablePriv();
     // default to unsorted
     priv->sortColumn = -1;
@@ -153,8 +153,8 @@ QVariant PeerTableModel::data(const QModelIndex &index, int role) const
             return QVariant(rec->addrName.c_str());
         case Subversion:
             return QVariant(rec->cleanSubVer.c_str());
-        case Height:
-            return rec->nStartingHeight;
+        case Ping:
+            return QString::number(rec->dPingTime, 'f', 3);
         }
     }
     return QVariant();
