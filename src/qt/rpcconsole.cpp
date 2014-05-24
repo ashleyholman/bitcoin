@@ -615,7 +615,7 @@ void RPCConsole::updateNodeDetail(const CNodeStats *stats)
     ui->peerBytesSent->setText(FormatBytes(stats->nSendBytes));
     ui->peerBytesRecv->setText(FormatBytes(stats->nRecvBytes));
     ui->peerConnTime->setText(GUIUtil::formatDurationStr(GetTime() - stats->nTimeConnected));
-    ui->peerPingTime->setText(stats->dPingTime == 0 ? tr("N/A") : QString(tr("%1 secs")).arg(stats->dPingTime));
+    ui->peerPingTime->setText(stats->dPingTime == 0 ? tr("N/A") : QString(tr("%1 secs")).arg(QString::number(stats->dPingTime, 'f', 3)));
     ui->peerVersion->setText(QString("%1").arg(stats->nVersion));
     ui->peerSubversion->setText(QString(stats->cleanSubVer.c_str()));
     ui->peerDirection->setText(stats->fInbound ? tr("Inbound") : tr("Outbound"));
