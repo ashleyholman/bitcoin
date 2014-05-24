@@ -607,7 +607,7 @@ void RPCConsole::updateNodeDetail(const CNodeStats *stats)
     detailNodeStats.nTimeConnected = stats->nTimeConnected;
 
     // update the detail ui with latest node information
-    ui->peerHeading->setText(QString(tr("<b>Node Detail</b>")));
+    ui->peerHeading->setText(QString("<b>%1</b>").arg(tr("Node Detail")));
     ui->peerAddr->setText(QString(stats->addrName.c_str()));
     ui->peerServices->setText(QString("%1").arg(stats->nServices));
     ui->peerLastSend->setText(stats->nLastSend ?  GUIUtil::formatDurationStr(GetTime() - stats->nLastSend) : tr("never"));
