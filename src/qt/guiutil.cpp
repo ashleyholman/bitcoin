@@ -11,6 +11,7 @@
 
 #include "core.h"
 #include "init.h"
+#include "protocol.h"
 #include "util.h"
 
 #ifdef WIN32
@@ -768,6 +769,33 @@ QString formatDurationStr(int secs)
         strList.append(QString(QObject::tr("%1 s")).arg(seconds));
 
     return strList.join(" ");
+}
+
+QString formatServicesStr(uint64_t mask)
+{
+    QStringList strList;
+
+    // Just scan the last 8 bits for now.
+    for (int i=0; i < 8; i++) {
+        uint64_t check = 1 << i;
+        if (mask & check)
+        {
+            switch (check)
+            {
+            case NODE_NETWORK:
+                strList.append(QObject::tr("NETWORK"));
+                break;
+            default:
+                strList.append(QString("%1[%2]").arg(QObject::tr("UNKNOWN")).arg(check));
+            }
+        }
+    }
+
+    if (strList.size())
+        return strList.join(" & ");
+    else
+        return QObject::tr("None");
+
 }
 
 } // namespace GUIUtil

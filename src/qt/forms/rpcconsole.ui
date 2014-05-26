@@ -728,7 +728,7 @@
           <item row="14" column="0">
            <widget class="QLabel" name="label_28">
             <property name="text">
-             <string>Subversion:</string>
+             <string>User Agent:</string>
             </property>
            </widget>
           </item>
@@ -909,6 +909,16 @@
            <widget class="QLabel" name="peerAddr">
             <property name="text">
              <string>N/A</string>
+            </property>
+           </widget>
+          </item>
+          <item row="20" column="0">
+           <widget class="QWidget" name="widget" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
            </widget>
           </item>

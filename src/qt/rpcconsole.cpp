@@ -609,7 +609,7 @@ void RPCConsole::updateNodeDetail(const CNodeStats *stats)
     // update the detail ui with latest node information
     ui->peerHeading->setText(QString("<b>%1</b>").arg(tr("Node Detail")));
     ui->peerAddr->setText(QString(stats->addrName.c_str()));
-    ui->peerServices->setText(QString("%1").arg(stats->nServices));
+    ui->peerServices->setText(GUIUtil::formatServicesStr(stats->nServices));
     ui->peerLastSend->setText(stats->nLastSend ?  GUIUtil::formatDurationStr(GetTime() - stats->nLastSend) : tr("never"));
     ui->peerLastRecv->setText(stats->nLastRecv ?  GUIUtil::formatDurationStr(GetTime() - stats->nLastRecv) : tr("never"));
     ui->peerBytesSent->setText(FormatBytes(stats->nSendBytes));
@@ -638,7 +638,7 @@ void RPCConsole::updateNodeDetail(const CNodeStats *stats)
     }
     else
         if (detailNodeStateStats.nMisbehavior == -1)
-            ui->peerBanScore->setText(tr("Unavailable"));
+            ui->peerBanScore->setText(tr("Fetching..."));
 }
 
 void RPCConsole::resizeEvent(QResizeEvent *event)

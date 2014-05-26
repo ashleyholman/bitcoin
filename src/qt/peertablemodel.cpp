@@ -102,7 +102,7 @@ public:
 PeerTableModel::PeerTableModel(ClientModel *parent) :
     QAbstractTableModel(parent),clientModel(parent),timer(0)
 {
-    columns << tr("Address") << tr("Subversion") << tr("Ping (secs)");
+    columns << tr("Address") << tr("User Agent") << tr("Ping (secs)");
     priv = new PeerTablePriv();
     // default to unsorted
     priv->sortColumn = -1;
