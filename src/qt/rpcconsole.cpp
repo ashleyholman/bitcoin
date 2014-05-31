@@ -199,10 +199,9 @@ RPCConsole::RPCConsole(QWidget *parent) :
     clientModel(0),
     historyPtr(0)
 {
-    detailNodeStats = CNodeStats();
-    detailNodeStateStats = CNodeStateStats();
-    detailNodeStats.nodeid = -1;
-    detailNodeStateStats.nMisbehavior = -1;
+    detailNodeStats = CNodeCombinedStats();
+    detailNodeStats.nodestats.nodeid = -1;
+    detailNodeStats.statestats.nMisbehavior = -1;
 
     ui->setupUi(this);
     GUIUtil::restoreWindowGeometry("nRPCConsoleWindow", this->size(), this);
@@ -516,13 +515,13 @@ void RPCConsole::peerSelected(const QItemSelection &selected, const QItemSelecti
         return;
 
     // mark the cached banscore as unknown
-    detailNodeStateStats.nMisbehavior = -1;
+    detailNodeStats.statestats.nMisbehavior = -1;
 
-    const CNodeStats *stats = clientModel->getPeerTableModel()->getNodeStats(selected.indexes().first().row());
+    const CNodeCombinedStats *stats = clientModel->getPeerTableModel()->getNodeStats(selected.indexes().first().row());
 
     if (stats)
     {
-        detailNodeStats.nodeid = stats->nodeid;
+        detailNodeStats.nodestats.nodeid = stats->nodestats.nodeid;
         updateNodeDetail(stats);
         ui->detailWidget->show();
         ui->detailWidget->setDisabled(false);
@@ -531,10 +530,10 @@ void RPCConsole::peerSelected(const QItemSelection &selected, const QItemSelecti
 
 void RPCConsole::peerLayoutChanged()
 {
-    const CNodeStats *stats = NULL;
+    const CNodeCombinedStats *stats = NULL;
     bool fUnselect = false, fReselect = false, fDisconnected = false;
 
-    if (detailNodeStats.nodeid == -1)
+    if (detailNodeStats.nodestats.nodeid == -1)
         // no node selected yet
         return;
 
@@ -548,14 +547,14 @@ void RPCConsole::peerLayoutChanged()
 
     // check if our detail node has a row in the table (it may not necessarily
     // be at selectedRow since its position can change after a layout change)
-    int detailNodeRow = clientModel->getPeerTableModel()->getRowByNodeId(detailNodeStats.nodeid);
+    int detailNodeRow = clientModel->getPeerTableModel()->getRowByNodeId(detailNodeStats.nodestats.nodeid);
 
     if (detailNodeRow < 0)
     {
         // detail node dissapeared from table (node disconnected)
         fUnselect = true;
         fDisconnected = true;
-        detailNodeStats.nodeid = 0;
+        detailNodeStats.nodestats.nodeid = 0;
     }
     else
     {
@@ -588,57 +587,56 @@ void RPCConsole::peerLayoutChanged()
     {
         ui->peerHeading->setText(QString(tr("Peer Disconnected")));
         ui->detailWidget->setDisabled(true);
-        QDateTime dt = QDateTime::fromTime_t(detailNodeStats.nLastSend);
-        if (detailNodeStats.nLastSend)
+        QDateTime dt = QDateTime::fromTime_t(detailNodeStats.nodestats.nLastSend);
+        if (detailNodeStats.nodestats.nLastSend)
             ui->peerLastSend->setText(dt.toString("yyyy-MM-dd hh:mm:ss"));
-        dt.setTime_t(detailNodeStats.nLastRecv);
-        if (detailNodeStats.nLastRecv)
+        dt.setTime_t(detailNodeStats.nodestats.nLastRecv);
+        if (detailNodeStats.nodestats.nLastRecv)
             ui->peerLastRecv->setText(dt.toString("yyyy-MM-dd hh:mm:ss"));
-        dt.setTime_t(detailNodeStats.nTimeConnected);
+        dt.setTime_t(detailNodeStats.nodestats.nTimeConnected);
         ui->peerConnTime->setText(dt.toString("yyyy-MM-dd hh:mm:ss"));
     }
 }
 
-void RPCConsole::updateNodeDetail(const CNodeStats *stats)
+void RPCConsole::updateNodeDetail(const CNodeCombinedStats *combinedStats)
 {
+    CNodeStats stats = combinedStats->nodestats;
+
     // keep a copy of timestamps, used to display dates upon disconnect
-    detailNodeStats.nLastSend = stats->nLastSend;
-    detailNodeStats.nLastRecv = stats->nLastRecv;
-    detailNodeStats.nTimeConnected = stats->nTimeConnected;
+    detailNodeStats.nodestats.nLastSend = stats.nLastSend;
+    detailNodeStats.nodestats.nLastRecv = stats.nLastRecv;
+    detailNodeStats.nodestats.nTimeConnected = stats.nTimeConnected;
 
     // update the detail ui with latest node information
     ui->peerHeading->setText(QString("<b>%1</b>").arg(tr("Node Detail")));
-    ui->peerAddr->setText(QString(stats->addrName.c_str()));
-    ui->peerServices->setText(GUIUtil::formatServicesStr(stats->nServices));
-    ui->peerLastSend->setText(stats->nLastSend ?  GUIUtil::formatDurationStr(GetTime() - stats->nLastSend) : tr("never"));
-    ui->peerLastRecv->setText(stats->nLastRecv ?  GUIUtil::formatDurationStr(GetTime() - stats->nLastRecv) : tr("never"));
-    ui->peerBytesSent->setText(FormatBytes(stats->nSendBytes));
-    ui->peerBytesRecv->setText(FormatBytes(stats->nRecvBytes));
-    ui->peerConnTime->setText(GUIUtil::formatDurationStr(GetTime() - stats->nTimeConnected));
-    ui->peerPingTime->setText(stats->dPingTime == 0 ? tr("N/A") : QString(tr("%1 secs")).arg(QString::number(stats->dPingTime, 'f', 3)));
-    ui->peerVersion->setText(QString("%1").arg(stats->nVersion));
-    ui->peerSubversion->setText(QString(stats->cleanSubVer.c_str()));
-    ui->peerDirection->setText(stats->fInbound ? tr("Inbound") : tr("Outbound"));
-    ui->peerHeight->setText(QString("%1").arg(stats->nStartingHeight));
-    ui->peerSyncNode->setText(stats->fSyncNode ? tr("Yes") : tr("No"));
+    ui->peerAddr->setText(QString(stats.addrName.c_str()));
+    ui->peerServices->setText(GUIUtil::formatServicesStr(stats.nServices));
+    ui->peerLastSend->setText(stats.nLastSend ? GUIUtil::formatDurationStr(GetTime() - stats.nLastSend) : tr("never"));
+    ui->peerLastRecv->setText(stats.nLastRecv ? GUIUtil::formatDurationStr(GetTime() - stats.nLastRecv) : tr("never"));
+    ui->peerBytesSent->setText(FormatBytes(stats.nSendBytes));
+    ui->peerBytesRecv->setText(FormatBytes(stats.nRecvBytes));
+    ui->peerConnTime->setText(GUIUtil::formatDurationStr(GetTime() - stats.nTimeConnected));
+    ui->peerPingTime->setText(stats.dPingTime == 0 ? tr("N/A") : QString(tr("%1 secs")).arg(QString::number(stats.dPingTime, 'f', 3)));
+    ui->peerVersion->setText(QString("%1").arg(stats.nVersion));
+    ui->peerSubversion->setText(QString(stats.cleanSubVer.c_str()));
+    ui->peerDirection->setText(stats.fInbound ? tr("Inbound") : tr("Outbound"));
+    ui->peerHeight->setText(QString("%1").arg(stats.nStartingHeight));
+    ui->peerSyncNode->setText(stats.fSyncNode ? tr("Yes") : tr("No"));
 
     // if we can, display the peer's ban score
-    CNodeStateStats statestats;
-    bool fStateStats = false;
-    TRY_LOCK(cs_main, lockMain);
+    CNodeStateStats statestats = combinedStats->statestats;
+    if (statestats.nMisbehavior >= 0)
     {
-        if (lockMain)
-          fStateStats = GetNodeStateStats(stats->nodeid, statestats);
+        LogPrintf("UPDATING CACHE COS WE GOT A NEW BAN SCORE\n");
+        // we have a new nMisbehavor value - update the cache
+        detailNodeStats.statestats.nMisbehavior = statestats.nMisbehavior;
     }
-    if (fStateStats)
-    {
-        ui->peerBanScore->setText(QString("%1").arg(statestats.nMisbehavior));
-        // cache this ban score for later use if we fail the lock
-        detailNodeStateStats.nMisbehavior = statestats.nMisbehavior;
-    }
+
+    // pull the ban score from cache.  -1 means it hasn't been retrieved yet (lock busy).
+    if (detailNodeStats.statestats.nMisbehavior >= 0)
+        ui->peerBanScore->setText(QString("%1").arg(detailNodeStats.statestats.nMisbehavior));
     else
-        if (detailNodeStateStats.nMisbehavior == -1)
-            ui->peerBanScore->setText(tr("Fetching..."));
+        ui->peerBanScore->setText(tr("Fetching..."));
 }
 
 void RPCConsole::resizeEvent(QResizeEvent *event)

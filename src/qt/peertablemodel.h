@@ -5,6 +5,7 @@
 #ifndef PEERTABLEMODEL_H
 #define PEERTABLEMODEL_H
 
+#include "main.h"
 #include "net.h"
 
 #include <QAbstractTableModel>
@@ -15,18 +16,22 @@ class ClientModel;
 
 class QTimer;
 
+struct CNodeCombinedStats {
+    CNodeStats nodestats;
+    CNodeStateStats statestats;
+};
+
 class NodeLessThan
 {
 public:
     NodeLessThan(int nColumn, Qt::SortOrder fOrder):
         column(nColumn), order(fOrder) {}
-    bool operator()(const CNodeStats &left, const CNodeStats &right) const;
+    bool operator()(const CNodeCombinedStats &left, const CNodeCombinedStats &right) const;
 
 private:
     int column;
     Qt::SortOrder order;
 };
-
 
 /**
    Qt model providing information about connected peers, similar to the
@@ -38,7 +43,7 @@ class PeerTableModel : public QAbstractTableModel
 
 public:
     explicit PeerTableModel(ClientModel *parent = 0);
-    const CNodeStats *getNodeStats(int idx);
+    const CNodeCombinedStats *getNodeStats(int idx);
     int getRowByNodeId(NodeId nodeid);
     void startAutoRefresh(int msecs);
     void stopAutoRefresh();

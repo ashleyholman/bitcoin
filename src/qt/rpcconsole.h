@@ -6,15 +6,16 @@
 #define RPCCONSOLE_H
 
 #include "guiutil.h"
-#include "main.h"
 #include "net.h"
+
+#include "peertablemodel.h"
 
 #include <QDialog>
 
 class ClientModel;
 
 class QItemSelection;
-class CNodeStats;
+class CNodeCombinedStats;
 
 namespace Ui {
     class RPCConsole;
@@ -44,7 +45,7 @@ protected:
 
 private:
     /** show detailed information on ui about selected node */
-    void updateNodeDetail(const CNodeStats *stats);
+    void updateNodeDetail(const CNodeCombinedStats *combinedStats);
 
     enum ColumnWidths
     {
@@ -53,9 +54,7 @@ private:
     };
 
     /** track the node that we are currently viewing detail on in the peers tab */
-    CNodeStats detailNodeStats;
-    CNodeStateStats detailNodeStateStats;
-
+    CNodeCombinedStats detailNodeStats;
 
 private slots:
     void on_lineEdit_returnPressed();
