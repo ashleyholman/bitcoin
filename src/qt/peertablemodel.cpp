@@ -13,10 +13,10 @@
 #include <QList>
 #include <QTimer>
 
-bool NodeLessThan::operator()(const CNodeStats &left, const CNodeStats &right) const
+bool NodeLessThan::operator()(const CNodeCombinedStats &left, const CNodeCombinedStats &right) const
 {
-    const CNodeStats *pLeft = &left;
-    const CNodeStats *pRight = &right;
+    const CNodeStats *pLeft = &(left.nodestats);
+    const CNodeStats *pRight = &(right.nodestats);
 
     if (order == Qt::DescendingOrder)
         std::swap(pLeft, pRight);
@@ -39,7 +39,7 @@ class PeerTablePriv
 {
 public:
     /** Local cache of peer information */
-    QList<CNodeStats> cachedNodeStats;
+    QList<CNodeCombinedStats> cachedNodeStats;
     /** Column to sort nodes by */
     int sortColumn;
     /** Order (ascending or descending) to sort nodes by */
@@ -62,11 +62,25 @@ public:
 #endif
             BOOST_FOREACH(CNode* pnode, vNodes)
             {
-                CNodeStats stats;
-                pnode->copyStats(stats);
+                CNodeCombinedStats stats;
+                stats.statestats.nMisbehavior = -1;
+                pnode->copyStats(stats.nodestats);
                 cachedNodeStats.append(stats);
             }
         }
+
+        // if we can, retrieve the CNodeStateStats for each node.
+        TRY_LOCK(cs_main, lockMain);
+        {
+            if (lockMain)
+            {
+                BOOST_FOREACH(CNodeCombinedStats &stats, cachedNodeStats)
+                {
+                    GetNodeStateStats(stats.nodestats.nodeid, stats.statestats);
+                }
+            }
+        }
+
 
         if (sortColumn >= 0)
             // sort cacheNodeStats (use stable sort to prevent rows jumping around unneceesarily)
@@ -75,9 +89,9 @@ public:
         // build index map
         mapNodeRows.clear();
         int row = 0;
-        BOOST_FOREACH(CNodeStats &stats, cachedNodeStats)
+        BOOST_FOREACH(CNodeCombinedStats &stats, cachedNodeStats)
         {
-            mapNodeRows.insert(std::pair<NodeId, int>(stats.nodeid, row++));
+            mapNodeRows.insert(std::pair<NodeId, int>(stats.nodestats.nodeid, row++));
         }
     }
 
@@ -86,7 +100,7 @@ public:
         return cachedNodeStats.size();
     }
 
-    CNodeStats *index(int idx)
+    CNodeCombinedStats *index(int idx)
     {
         if(idx >= 0 && idx < cachedNodeStats.size()) {
             return &cachedNodeStats[idx];
@@ -143,18 +157,18 @@ QVariant PeerTableModel::data(const QModelIndex &index, int role) const
     if(!index.isValid())
         return QVariant();
 
-    CNodeStats *rec = static_cast<CNodeStats*>(index.internalPointer());
+    CNodeCombinedStats *rec = static_cast<CNodeCombinedStats*>(index.internalPointer());
 
     if(role == Qt::DisplayRole)
     {
         switch(index.column())
         {
         case Address:
-            return QVariant(rec->addrName.c_str());
+            return QVariant(rec->nodestats.addrName.c_str());
         case Subversion:
-            return QVariant(rec->cleanSubVer.c_str());
+            return QVariant(rec->nodestats.cleanSubVer.c_str());
         case Height:
-            return rec->nStartingHeight;
+            return rec->nodestats.nStartingHeight;
         }
     }
     return QVariant();
@@ -184,7 +198,7 @@ Qt::ItemFlags PeerTableModel::flags(const QModelIndex &index) const
 QModelIndex PeerTableModel::index(int row, int column, const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
-    CNodeStats *data = priv->index(row);
+    CNodeCombinedStats *data = priv->index(row);
 
     if (data)
     {
@@ -196,7 +210,7 @@ QModelIndex PeerTableModel::index(int row, int column, const QModelIndex &parent
     }
 }
 
-const CNodeStats *PeerTableModel::getNodeStats(int idx) {
+const CNodeCombinedStats *PeerTableModel::getNodeStats(int idx) {
     return priv->index(idx);
 }
 
